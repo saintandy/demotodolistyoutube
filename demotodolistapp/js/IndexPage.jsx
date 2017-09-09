@@ -1,153 +1,94 @@
-import {UI, Link, registerStyle} from "UI";
-import {StyleSheet, styleRule} from "UI";
+import {UI, StyleSheet, styleRule, registerStyle} from "UI";
+import {FAIcon} from "FontAwesome";
 
-
-class CardStyle extends StyleSheet {
+class TodoStyle extends StyleSheet {
     @styleRule
-    container = {
-        width: "450px",
-        maxHeight: "100%",
-        maxWidth: "100%",
-        backgroundColor: "#fff",
-        boxShadow: "#a05100 0px 0px 10px",
+    todo = {
+        listStyle: "decimal",
+        ":hover": {
+            backgroundColor: "#eee",
+        },
     };
 
     @styleRule
-    header = {
-        height: "100px",
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        fontSize: "28px",
+    uncheckedTodo = {
+
     };
 
     @styleRule
-    body = {
-        paddingLeft: "20px",
-        paddingRight: "20px",
-        paddingBottom: "40px",
-        textAlign: "center",
-        fontSize: "17px",
-        ">p": {
-            margin: "0px",
-        }
+    checkedTodo = {
+        textDecoration: "line-through",
     };
 }
 
-class QuoteStyle extends StyleSheet {
-    @styleRule
-    quote = {
-        color: "#aaa",
-        fontStyle: "italic",
-        fontSize: "17px",
-        marginTop: "10px",
-    };
-}
-
-class IndexPageStyle extends StyleSheet {
-    @styleRule
-    container = {
-        height: "100%",
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column",
-    };
-
-    @styleRule
-    topContainer = {
-        flexGrow: "1.5",
-        width: "100%",
-        backgroundColor: "#f0a150",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-    };
-
-    @styleRule
-    bottomContainer = {
-        flexGrow: "2",
-        width: "100%",
-        fontSize: "18px",
-        paddingTop: "20px",
-        textAlign: "center",
-    };
-}
-
-
-@registerStyle(CardStyle)
-export class Card extends UI.Element {
+@registerStyle(TodoStyle)
+class Todo extends UI.Primitive("li") {
     extraNodeAttributes(attr) {
-        attr.addClass(this.styleSheet.container);
+        attr.addClass(this.styleSheet.todo);
     }
 
     render() {
-        let {headerText, bodyText} = this.options;
-
-        return [
-            <div className={this.styleSheet.header}>
-                {headerText}
-            </div>,
-            <div className={this.styleSheet.body}>
-                {
-                    bodyText.map((line) => {
-                        return <p>{line}</p>;
-                    })
-                }
-            </div>
-        ];
-    }
-}
-
-@registerStyle(QuoteStyle)
-class Quote extends UI.Element {
-    render() {
-        let {text, hasQuotes} = this.options,
-            message = text;
-        if (hasQuotes) {
-            message = "\"" + message + "\"";
+        const {message, checked} = this.options;
+        let divClassName = this.styleSheet.uncheckedTodo;
+        if (checked) {
+            divClassName = this.styleSheet.checkedTodo;
         }
-
-        return <div className={this.styleSheet.quote}>
+        
+        return <div className={divClassName}>
+            {
+                checked ? <FAIcon icon="check-circle-o" /> : null
+            }
             {message}
         </div>;
     }
-}
 
-@registerStyle(IndexPageStyle)
-export class IndexPage extends UI.Element {
-    extraNodeAttributes(attr) {
-        attr.addClass(this.styleSheet.container);
+    toggleTodo() {
+        this.updateOptions({
+            checked: !this.options.checked,
+        });
     }
 
-    render() {
-        let headerText = "Welcome Vlad!";
-        let bodyText = [
-            "This is the beginning of your stem project.",
-            <Quote text="demotodolist" />,
-            <Quote text="Just a simple StemJS TodoList app" hasQuotes={true} />,
-        ];
+    onMount() {
+        this.addClickListener(() => {
+            this.toggleTodo();
+        });
+    }
+}
 
-        return [
-            <div className={this.styleSheet.topContainer}>
-                <Card headerText={headerText} bodyText={bodyText} />
-            </div>,
-            <div className={this.styleSheet.bottomContainer}>
-                <p>
-                    Get started by editing <code>demotodolistapp/js/IndexPage.jsx</code>
-                </p>
-                <p>
-                    Save the code and just refresh the page.
-                </p>
-                <p>
-                    You can also use Stem components, for example - <code>TabArea</code>, <code>Panel</code>, <code>Button</code>
-                </p>
-                <p>
-                    Check the docs <Link href="https://stemjs.org/docs/">here</Link>.
-                </p>
-            </div>
+class TodoList extends UI.Primitive("ul") {
+    render() {
+        const todoItems = [
+            {
+                message: "test 1",
+                checked: false,
+            },
+            {
+                message: "test 2",
+                checked: false,
+            },
+            {
+                message: "test 3",
+                checked: true,
+            },
+            {
+                message: "test 4",
+                checked: false,
+            },
         ];
+        let todos = [];
+
+        for (let index = 0; index < todoItems.length; index += 1) {
+            todos.push(
+                <Todo message={todoItems[index].message} checked={todoItems[index].checked} />,
+            );
+        }
+
+        return todos;
+    }
+}
+
+export class IndexPage extends UI.Element {
+    render() {
+        return <TodoList />;
     }
 }
